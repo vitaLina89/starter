@@ -1,13 +1,12 @@
 package com.example.metricsstarter.metrics;
 
-import org.springframework.stereotype.Component;
+import com.example.metricsstarter.interfaceabstract.MetricCollectorInterface;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Component
-public class MetricCollector {
+public class MetricCollector implements MetricCollectorInterface {
 
     public static class DurationMetrics {
         private final AtomicLong minDuration = new AtomicLong(Long.MAX_VALUE);
@@ -31,7 +30,7 @@ public class MetricCollector {
             return maxDuration.get();
         }
 
-        public long getAvg() {
+        public long getAvr() {
             return count.get() == 0 ? 0 : totalDuration.get() / count.get();
         }
     }
@@ -41,19 +40,23 @@ public class MetricCollector {
     private final ConcurrentHashMap<String, AtomicLong> successMetrics = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AtomicLong> errorMetrics = new ConcurrentHashMap<>();
 
-    public void recordCount(String metricName) {
+    @Override
+    public void incrementCount(String metricName) {
         countMetrics.computeIfAbsent(metricName, k -> new AtomicLong()).incrementAndGet();
     }
 
+    @Override
     public void recordDuration(String metricName, long duration) {
         durationMetrics.computeIfAbsent(metricName, k -> new DurationMetrics()).record(duration);
     }
 
-    public void recordSuccess(String metricName) {
+    @Override
+    public void incrementSuccess(String metricName) {
         successMetrics.computeIfAbsent(metricName, k -> new AtomicLong()).incrementAndGet();
     }
 
-    public void recordError(String metricName) {
+    @Override
+    public void incrementError(String metricName) {
         errorMetrics.computeIfAbsent(metricName, k -> new AtomicLong()).incrementAndGet();
     }
 
@@ -73,4 +76,3 @@ public class MetricCollector {
         return errorMetrics;
     }
 }
-
